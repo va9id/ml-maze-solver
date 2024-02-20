@@ -1,0 +1,2 @@
+0 Maze
+1 Non-Maze
