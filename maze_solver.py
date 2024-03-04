@@ -4,7 +4,9 @@ import cv2
 from pathfinding import astar
 from constants import PATHWAY, WALL, START, END, BLACK_PIXEL 
 
-
+def display_image_with_delay(image, window_name='Maze with Path', delay=5):
+    cv2.imshow(window_name, image)
+    cv2.waitKey(delay)
 
 def get_binary_image(image: cv2.typing.MatLike):
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -39,25 +41,21 @@ def find_start_and_end(image: cv2.typing.MatLike):
         result.append(((left_white[0], 0), (left_white[-1], 0)))
     if opening1 == right_length or opening2 == right_length:
         result.append(((right_white[0], cols - 1), (right_white[-1], cols - 1)))
-
-    # cropped_image[result[0][0][0]:result[0][1][0], result[0][0][1]:result[0][1][1]+10] = 0
-    # cropped_image[result[1][0][0]:result[1][1][0], result[1][0][1]-10:result[1][1][1]] = 0 
-    # cv2.imwrite("TEST.jpg", cropped_image)
     
     return result
         
 def find_offset(image: cv2.typing.MatLike):
-    # image = self.get_binary_image(image)
     rows, cols = image.shape
     top_left, top_right, bottom_right = None, None, None
     
     for i in range(rows):
         for j in range(cols):
-            if (image[i,j] == 0) and (top_left is None):
+            if (image[i,j] == BLACK_PIXEL) and (top_left is None):
                 top_left = i, j
-                top_right = i, np.max(np.where(image[i] == 0)[0])
-                bottom_right = np.max(np.where(image[j] == 0)[0]), top_right[1]
+                top_right = i, np.max(np.where(image[i] == BLACK_PIXEL))
+                bottom_right = np.max(np.where(image[:, j] == BLACK_PIXEL)), top_right[1]
     
+    if top_left is None or top_right is None or bottom_right is None: raise Exception("Error cropping image!")
     return top_left, top_right, bottom_right
 
 def crop_image(image):
@@ -77,6 +75,7 @@ def find_maze_size(binary_image: cv2.typing.MatLike):
     left_white = [i for i, pixel_value in enumerate(left_col) if pixel_value == PATHWAY]
     right_white = [i for i, pixel_value in enumerate(right_col) if pixel_value == PATHWAY]  
 
+    # TODO: FIX bug (if entrance/exit on same side)
     return max([len(top_white), len(bottom_white), len(left_white), len(right_white)])
 
 def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
@@ -89,7 +88,7 @@ def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
     left_white = [i for i, pixel_value in enumerate(left_col) if pixel_value == PATHWAY]
     right_white = [i for i, pixel_value in enumerate(right_col) if pixel_value == PATHWAY]       
 
-    
+    # TODO: not accounting for if on same side fix bug
     arr = [top_length, bottom_length, left_length, right_length] = [len(top_white), len(bottom_white), len(left_white), len(right_white)]
     arr.sort()
     opening1, opening2 = arr[-1], arr[-2]
@@ -122,12 +121,13 @@ def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
     return result
 
 def find_path(image: cv2.typing.MatLike):
-    gray_img = crop_image(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     #convert image to black and white
     gray_img[gray_img > 100] = 255
     gray_img[gray_img <= 100] = 0
 
+    gray_img = crop_image(gray_img)
     
     rows, cols = gray_img.shape
 
@@ -136,22 +136,26 @@ def find_path(image: cv2.typing.MatLike):
         for j in range(cols):
             maze[i,j] = WALL if gray_img[i,j] == BLACK_PIXEL else PATHWAY
     
+    PATH_THICKNESS = int(find_maze_size(maze) * 0.8) # Using 80% of path width
     start, end = add_start_end_to_maze(maze)
-    path = set(astar(maze, start, end))
+    path = astar(maze, start, end)
 
     #Output result onto image
     output_image = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2RGB)
-    PATH_THICKNESS = 5 # 5 pixel path thickness
-    for i in range(rows):
-        for j in range(cols):
-            for k in range(PATH_THICKNESS):
-                if maze[i,j] != WALL and ((i, j) in path or (i+k, j) in path or (i-k, j) in path or (i, j+k) in path or (i, j-k) in path):
-                    output_image[i, j] = [255, 0, 0]
-                    break
-    
+
+    for i, j in path:
+        # Set a range of pixels around each path point
+        for x in range(i - PATH_THICKNESS//2, i + PATH_THICKNESS//2 + 1):
+            for y in range(j - PATH_THICKNESS//2, j + PATH_THICKNESS//2 + 1):
+                # Check if the coordinates are within the image boundaries
+                if 0 <= x < rows and 0 <= y < cols and maze[x,y] != WALL:
+                    output_image[x, y] = [255, 0, 0]
+
+        display_image_with_delay(output_image)
+        
     return output_image
 
 
-img = cv2.imread('Mazes/maze6.jpg')
+img = cv2.imread('Mazes/rect-maze.jpg')
 output = find_path(img)
-cv2.imwrite("output.jpg", output)
+# cv2.imwrite("../outputTEST.jpg", output)

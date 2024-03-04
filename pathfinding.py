@@ -3,14 +3,13 @@ import heapq
 from constants import WALL    
 
 def astar(grid, start, end):
-    rows, cols = grid.shape
     open_set = []  # Priority queue to store nodes to be explored
     heapq.heappush(open_set, (0, start))  # Initial node with cost 0
     came_from = {}  # Dictionary to store parent of each node
     cost_so_far = {start: 0}  # Dictionary to store cost to reach each node
 
     while open_set:
-        current_cost, current_node = heapq.heappop(open_set)
+        _, current_node = heapq.heappop(open_set)
 
         if current_node == end:
             path = reconstruct_path(came_from, start, end)

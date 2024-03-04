@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from keras.models import load_model
 
-class MazeClassifier():
+class RectangleMazeClassifier():
     def __init__(self):
         # The threshold confidence for what is considered a maze (i.e. 70% confidence)
         self.threshold = 0.7

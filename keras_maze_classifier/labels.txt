@@ -1,2 +1,2 @@
-0 Maze
-1 Non-Maze
+0 Rectangle-Maze
+1 Other
