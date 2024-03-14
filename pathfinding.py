@@ -37,7 +37,7 @@ def reconstruct_path(came_from, start, end):
     return path
 
 def heuristic(a, b, grid):
-    # Manhattan distance heuristic
+    # Manhattan distance heuristic while accounting for distance to nearest wall
     return abs(a[0] - b[0]) + abs(a[1] - b[1]) + 0.9 * distance_to_nearest_wall(b, grid)
 
 
