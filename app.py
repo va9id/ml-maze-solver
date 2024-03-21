@@ -2,17 +2,14 @@ import cv2
 import tkinter as tk
 from tkinter import filedialog
 from maze_solver import find_path
-from maze_classifier import RectangleMazeClassifier
+from maze_classifier import MazeClassifier
 
 def open_file_dialog():
-    # root = tk.Tk()
-    # root.withdraw() 
     file_path = filedialog.askopenfilename()  
-    # root.destroy() 
     return file_path
 
 def main():
-    mazeClassifier = RectangleMazeClassifier()
+    mazeClassifier = MazeClassifier()
     root = tk.Tk()
     root.withdraw() 
 

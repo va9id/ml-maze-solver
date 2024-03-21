@@ -1,4 +1,4 @@
-from constants import WALL, PATHWAY, WHITE_PIXEL, BLACK_PIXEL
+from constants import *
 import numpy as np
 import cv2
 import random
@@ -121,5 +121,10 @@ def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0):
     image = cv2.copyMakeBorder(image, padding_size, padding_size, padding_size, padding_size, cv2.BORDER_CONSTANT, value=WHITE_PIXEL)
     return image
 
-
-# cv2.imwrite("./outputTEST.jpg", generate_maze_image(15, 15, 5, 1, 0))
+def generate_random_maze_image():
+    cols = random.randint(6, 20)
+    rows = random.randint(6, 20)
+    cell_size = random.randint(10, 25)
+    line_thickness = random.randint(1, 5)
+    padding = random.randint(0, 10)
+    return generate_maze_image(cols, rows, cell_size, line_thickness, padding)

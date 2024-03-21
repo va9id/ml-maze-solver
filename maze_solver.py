@@ -246,7 +246,6 @@ def find_path(image: cv2.typing.MatLike):
     gray_img[gray_img > 100] = WHITE_PIXEL
     gray_img[gray_img <= 100] = BLACK_PIXEL
     # gray_img = crop_image(gray_img)
-    cv2.imwrite("./outputTEST.jpg", gray_img)
     
     rows, cols = gray_img.shape
 
