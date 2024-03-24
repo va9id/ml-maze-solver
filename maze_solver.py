@@ -1,15 +1,15 @@
 import numpy as np
 import cv2
 from pathfinding import astar
-from constants import PATHWAY, WALL, START, END, BLACK_PIXEL, WHITE_PIXEL, MAZE_WINDOW_NAME
+from constants import PATHWAY, WALL, START, END, BLACK_PIXEL, WHITE_PIXEL, MAZE_WINDOW_NAME, DELAY
 from typing import List, Tuple
 
-def display_image_with_delay(image: cv2.typing.MatLike, delay=5) -> None:
+def display_image_with_delay(image: cv2.typing.MatLike) -> None:
     '''
     Displays the maze being solved
     '''
     cv2.imshow(MAZE_WINDOW_NAME, image)
-    cv2.waitKey(delay)
+    cv2.waitKey(DELAY)
 
 def get_binary_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     '''
