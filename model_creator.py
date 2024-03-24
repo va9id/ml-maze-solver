@@ -21,6 +21,9 @@ class MazeDataset(Dataset):
         self.non_maze_images = self.load_non_maze_images()
         
     def load_maze_images(self):
+        '''
+        Loads maze images 
+        '''
         maze_images = []
         for filename in os.listdir(MAZE_FOLDER_NAME):
             if filename.endswith(".png") or filename.endswith(".jpg"):
@@ -29,6 +32,9 @@ class MazeDataset(Dataset):
         return maze_images
 
     def load_non_maze_images(self):
+        '''
+        Loads non maze images
+        '''
         non_maze_images = []
         for filename in os.listdir(NON_MAZE_FOLDER_NAME):
             if filename.endswith(".png") or filename.endswith(".jpg"):

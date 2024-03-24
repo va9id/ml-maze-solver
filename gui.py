@@ -4,6 +4,7 @@ from tkinter import filedialog
 from maze_solver import find_path
 from maze_classifier import MazeClassifier
 from PIL import Image, ImageTk
+from constants import IMAGE_SIZE
 
 
 class MazeSolverGui:
@@ -37,11 +38,16 @@ class MazeSolverGui:
         self.solve_btn.pack(side="bottom", pady=5)
 
     def open_file_dialog(self):
+        '''
+        Opens the file dialog
+        '''
         file_path = filedialog.askopenfilename()
         return file_path
 
     def upload_image(self):
-
+        '''
+        Handles uploading an image when the "Upload Image" button is clicked
+        '''
         if self.panel_uploaded is not None:
             self.panel_uploaded.destroy()
 
@@ -60,7 +66,9 @@ class MazeSolverGui:
             return
 
     def solve_maze(self):
-
+        '''
+        Handles sovling the maze when the "Solve" button is clicked
+        '''
         if self.uploaded_image is None:
             print("No image selected, can not solve!")
             return
@@ -84,7 +92,10 @@ class MazeSolverGui:
             return
 
     def display_uploaded_image(self, image):
-        image = cv2.resize(image, (250, 250))
+        '''
+        Displays the uploaded maze image onto the GUI
+        '''
+        image = cv2.resize(image, IMAGE_SIZE)
         image = Image.fromarray(image)
         image = ImageTk.PhotoImage(image)
         self.panel_uploaded = tk.Label(self.window, image=image)
@@ -92,7 +103,10 @@ class MazeSolverGui:
         self.panel_uploaded.pack()
 
     def display_result_image(self, image):
-        image = cv2.resize(image, (250, 250))
+        '''
+        Displays the solved maze image onto the GUI
+        '''
+        image = cv2.resize(image, IMAGE_SIZE)
         image = Image.fromarray(image)
         image = ImageTk.PhotoImage(image)
         self.panel_result = tk.Label(self.window, image=image)
@@ -100,6 +114,9 @@ class MazeSolverGui:
         self.panel_result.pack()
 
     def export_image(self, result_image):
+        '''
+        Handles allowing the user to export/save the sovled maze image
+        '''
         file_path = filedialog.asksaveasfilename(
             defaultextension=".png", initialfile="solved_maze.png"
         )

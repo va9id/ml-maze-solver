@@ -4,6 +4,8 @@ START = 2
 END = 3
 BLACK_PIXEL = 0
 WHITE_PIXEL = 255
+IMAGE_SIZE = (250, 250)
+MAZE_WINDOW_NAME = "Maze with Path"
 
 MAZE_FOLDER_NAME = "generated_mazes"
 NON_MAZE_FOLDER_NAME = "generated_non_mazes"

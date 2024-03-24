@@ -18,8 +18,10 @@ class MazeClassifier():
         self.model.eval()  # Set model to evaluation mode
         self.transform = transforms.Compose([transforms.ToPILImage(), transforms.Resize((64, 64)), transforms.ToTensor()])
 
-
     def predict_image_class(self, image: cv2.typing.MatLike) -> int:
+        '''
+        Predicts class (maze of non-maze) of the image
+        '''
         image_tensor = self.transform(image).unsqueeze(0)
         with torch.no_grad():
             output = self.model(image_tensor)
@@ -28,10 +30,15 @@ class MazeClassifier():
         return predicted_class
 
     def is_maze(self, image: cv2.typing.MatLike) -> bool:
+        '''
+        Checks if the image is a maze
+        '''
         return self.predict_image_class(image) == MAZE_LABEL
-    
 
 def test_classifier(num_images):
+    '''
+    Tests the maze classifier
+    '''
     output_maze_images(num_images)
     output_non_maze_images(num_images, False)
     classifier = MazeClassifier()
