@@ -5,6 +5,9 @@ from torchvision import datasets, transforms
 import cv2
 
 def output_maze_images(num_images):
+    '''
+    Outputs the maze images into the MAZE_FOLDER_NAME directory
+    '''
     if not os.path.isdir(MAZE_FOLDER_NAME): 
         os.mkdir(MAZE_FOLDER_NAME)
     for i in range(num_images):
@@ -12,6 +15,9 @@ def output_maze_images(num_images):
 
 
 def output_non_maze_images(num_images, train):
+    '''
+    Outputs the non maze images into the NON_MAZE_FOLDER_NAME directory
+    '''
     if not os.path.isdir(NON_MAZE_FOLDER_NAME): 
         os.mkdir(NON_MAZE_FOLDER_NAME)
 

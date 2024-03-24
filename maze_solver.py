@@ -1,50 +1,40 @@
-from typing import List
 import numpy as np
 import cv2
 from pathfinding import astar
-from constants import PATHWAY, WALL, START, END, BLACK_PIXEL, WHITE_PIXEL 
+from constants import PATHWAY, WALL, START, END, BLACK_PIXEL, WHITE_PIXEL, MAZE_WINDOW_NAME, DELAY
+from typing import List, Tuple
 
-def display_image_with_delay(image, window_name='Maze with Path', delay=5):
-    cv2.imshow(window_name, image)
-    cv2.waitKey(delay)
+def display_image_with_delay(image: cv2.typing.MatLike) -> None:
+    '''
+    Displays the maze being solved
+    '''
+    cv2.imshow(MAZE_WINDOW_NAME, image)
+    cv2.waitKey(DELAY)
 
-def get_binary_image(image: cv2.typing.MatLike):
+def get_binary_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
+    '''
+    Converts image into a binary image
+
+    Parameters:
+    image: the image to convert a binary image
+
+    Returns:
+    image: binary image with pixel
+    '''
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     _, binary_image = cv2.threshold(grayscale_image, 1, 255, cv2.THRESH_BINARY)
     return binary_image
 
-def find_start_and_end(image: cv2.typing.MatLike):
-    binary_image = get_binary_image(image)
-    cropped_image = crop_image(binary_image)
-    rows, cols = cropped_image.shape
-    top_row, bottom_row = cropped_image[0, :], cropped_image[rows - 1, :]
-    left_col, right_col = cropped_image[:, 0], cropped_image[:, cols - 1]
+def find_inner_contours(gray_image: cv2.typing.MatLike) -> List:
+    '''
+    Finds the inner contours of an image
     
-    top_white = [j for j, pixel_value in enumerate(top_row) if pixel_value == 255]
-    bottom_white = [j for j, pixel_value in enumerate(bottom_row) if pixel_value == 255]
-    left_white = [i for i, pixel_value in enumerate(left_col) if pixel_value == 255]
-    right_white = [i for i, pixel_value in enumerate(right_col) if pixel_value == 255]       
+    Parameters:
+    gray_image: the gray scale image to find inner contours for
 
-    
-    arr = [top_length, bottom_length, left_length, right_length] = [len(top_white), len(bottom_white), len(left_white), len(right_white)]
-    arr.sort()
-    opening1, opening2 = arr[-1], arr[-2]
-    if opening1 == 0 or opening2 == 0:
-        raise Exception("There must be an entrance and exit in the maze!")
-    
-    result = []
-    if opening1 == top_length or opening2 == top_length:
-        result.append(((0, top_white[0]), (0, top_white[-1])))
-    if opening1 == bottom_length or opening2 == bottom_length:
-        result.append(((rows - 1, bottom_white[0]), (rows - 1, bottom_white[-1])))
-    if opening1 == left_length or opening2 == left_length:
-        result.append(((left_white[0], 0), (left_white[-1], 0)))
-    if opening1 == right_length or opening2 == right_length:
-        result.append(((right_white[0], cols - 1), (right_white[-1], cols - 1)))
-    
-    return result
-
-def find_inner_contours(gray_image: cv2.typing.MatLike):
+    Returns:
+    List: the inner contours of the gray scale image
+    '''
     blurred = cv2.GaussianBlur(gray_image, (5, 5), 0)
     _, thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -58,9 +48,15 @@ def find_inner_contours(gray_image: cv2.typing.MatLike):
     
     return inner_contours
 
-def crop_image_using_contours(image: cv2.typing.MatLike):
+def crop_image_using_contours(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     '''
     Crops the image based on the contours of the image
+
+    Parameters:
+    image: the image to crop
+
+    Returns:
+    image: the cropped image from its contours
     '''
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     rows, cols = gray_img.shape
@@ -84,7 +80,16 @@ def crop_image_using_contours(image: cv2.typing.MatLike):
     cropped_image = image[min_j+1:max_j-1, min_i+1:max_i-1]
     return cropped_image
 
-def find_offset(image: cv2.typing.MatLike):
+def find_offset(image: cv2.typing.MatLike) -> Tuple:
+    '''
+    Finds the offset values from a border to the actual maze
+
+    Parameters:
+    image: the image to crop
+
+    Returns:
+    Tuple: the offsets for the top left, right and bottom right
+    '''
     rows, cols = image.shape
     top_left, top_right, bottom_right = None, None, None
     
@@ -98,25 +103,35 @@ def find_offset(image: cv2.typing.MatLike):
     if top_left is None or top_right is None or bottom_right is None: raise Exception("Error cropping image!")
     return top_left, top_right, bottom_right
 
-def crop_image(image):
+def crop_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     '''
     Crops the image based on the the value of pixels. Note that the image must already 
     be a black and white image and that this method will not work if the image has a 
     black border
+
+    Parameters:
+    image: the image to crop
+
+    Returns:
+    image: the cropped image from offsets
     '''
     top_left, top_right, bottom_right = find_offset(image)
     y_start, y_end = top_left[0], bottom_right[0]
     x_start, x_end = top_left[1], top_right[1]
     return image[y_start:y_end, x_start:x_end]
-        
 
-def find_maze_size(binary_image: cv2.typing.MatLike):
+def find_maze_size(binary_image: cv2.typing.MatLike) -> int:
     '''
     Finds the size (thickness) between the walls of the maze. Note that this method
     only works when the maze has exactly one entrance, one exit, and has a uniform 
     size throughout the maze.
-    '''
 
+    Parameters:
+    binary_image: maze image to find thickness of opening for
+
+    Returns:
+    int: the thickness of opening/path for the maze
+    '''
     rows, cols = binary_image.shape
     top_row, bottom_row = binary_image[0, :], binary_image[rows - 1, :]
     left_col, right_col = binary_image[:, 0], binary_image[:, cols - 1]
@@ -135,6 +150,16 @@ def find_maze_size(binary_image: cv2.typing.MatLike):
     return opening1
 
 def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
+    '''
+    Adds the start and end locations to the maze image using their respective constant values
+    and returns their values
+
+    Parameters:
+    maze: the maze image to add the start and end to
+
+    Returns:
+    List: the start and end pixel locations
+    '''
     rows, cols = maze.shape
     top_row, bottom_row = maze[0, :], maze[rows - 1, :]
     left_col, right_col = maze[:, 0], maze[:, cols - 1]
@@ -224,6 +249,15 @@ def convert_to_black_and_white(gray_img: cv2.typing.MatLike) -> None:
     pass
 
 def resize_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
+    '''
+    Resizes maze image 
+
+    Parameters:
+    image: the maze image to resize
+
+    Returns:
+    image: the resized image
+    '''
     resized_width = 600
     resized_height = 400
     original_height, original_width = image.shape[:2]
@@ -237,7 +271,17 @@ def resize_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
 
     return cv2.resize(image, (new_width, new_height))
 
-def find_path(image: cv2.typing.MatLike):
+def find_path(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
+    '''
+    Finds the path from the start to end of the maze using the A* 
+    search algorithm and displays the path on the output image
+
+    Parameters:
+    image: the maze image to find the path for
+
+    Returns:
+    image: an output image with sovled maze path
+    '''
     image = resize_image(image)
     image = crop_image_using_contours(image)
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -245,7 +289,6 @@ def find_path(image: cv2.typing.MatLike):
     #convert image to black and white
     gray_img[gray_img > 100] = WHITE_PIXEL
     gray_img[gray_img <= 100] = BLACK_PIXEL
-    # gray_img = crop_image(gray_img)
     
     rows, cols = gray_img.shape
 
@@ -275,8 +318,3 @@ def find_path(image: cv2.typing.MatLike):
         display_image_with_delay(output_image)
         
     return output_image
-
-
-# img = cv2.imread('Mazes/maze_thicker2.jpg')
-# output = find_path(img)
-# cv2.imwrite("./outputTEST.jpg", output)

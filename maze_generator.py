@@ -2,6 +2,7 @@ from constants import *
 import numpy as np
 import cv2
 import random
+from typing import Tuple, List
 
 class Cell:
     def __init__(self, x, y, top_wall=True, bottom_wall=True, left_wall=True, right_wall=True, visited=False):
@@ -13,7 +14,17 @@ class Cell:
         self.right_wall = right_wall
         self.visited = False
 
-def remove_random_wall(cells, excluded_cell=None):
+def remove_random_wall(cells: Cell, excluded_cell=None) -> Tuple:
+    '''
+    Removes a random wall from the maze cells.
+
+    Parameters:
+    cells: The 2D list representing the maze cells.
+    excluded_cell: A tuple representing the coordinates of a cell to exclude
+
+    Returns:
+    Tuple: a tuple of the cell from which the wall was removed
+    '''
     rows, cols = len(cells), len(cells[0])
     removed_cell = None
     random_number = random.randint(1, 4)
@@ -48,9 +59,13 @@ def pick_start_and_end(cells):
 
     return start, end
 
-def generate_pathways(cells, start):
+def generate_pathways(cells: List, start: Tuple) -> None:
     '''
     Generates pathways using randomized DFS algorithm
+    
+    Parameters:
+    cells: a 2D list representing the maze cells.
+    start: a tuple representing the starting coordinates in the maze
     '''
     rows, cols = len(cells), len(cells[0])
     current_cell = cells[start[0], start[1]]
@@ -94,7 +109,20 @@ def generate_pathways(cells, start):
             stack.pop() # current cell has no unvisited neighbors so remove from stack
             current_cell = None if len(stack) == 0 else stack[-1] # Go back to previous cell
 
-def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0):
+def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0) -> cv2.typing.MatLike:
+    '''
+    Generates a maze image based on the specified parameters.
+
+    Parameters:
+    cols: number of columns in the maze.
+    rows: number of rows in the maze.
+    cell_size: size of each maze cell in pixels.
+    line_thickness: thickness of maze walls in pixels.
+    padding_size: size of padding to add around the maze image. Defaults to 0.
+
+    Returns:
+    image: the maze image generated
+    '''
     # Create numpy array of Cell objects
     cells = np.array([[Cell(x, y) for x in range(cols)] for y in range(rows)])
     start, _ = pick_start_and_end(cells)
@@ -121,7 +149,13 @@ def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0):
     image = cv2.copyMakeBorder(image, padding_size, padding_size, padding_size, padding_size, cv2.BORDER_CONSTANT, value=WHITE_PIXEL)
     return image
 
-def generate_random_maze_image():
+def generate_random_maze_image() -> cv2.typing.MatLike:
+    '''
+    Generates a random maze image.
+
+    Returns:
+    image: the random generated maze image
+    '''
     cols = random.randint(6, 20)
     rows = random.randint(6, 20)
     cell_size = random.randint(10, 25)
