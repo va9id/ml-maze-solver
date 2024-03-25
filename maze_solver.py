@@ -301,12 +301,13 @@ def find_path(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     image: an output image with sovled maze path
     '''
     image = resize_image(image)
-    image = crop_image_using_contours(image)
+    # image = crop_image_using_contours(image)
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     #convert image to black and white
     gray_img[gray_img > 100] = WHITE_PIXEL
     gray_img[gray_img <= 100] = BLACK_PIXEL
+    gray_img = crop_image(gray_img)
     
     rows, cols = gray_img.shape
 
