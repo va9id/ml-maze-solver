@@ -159,6 +159,6 @@ def generate_random_maze_image() -> cv2.typing.MatLike:
     cols = random.randint(6, 20)
     rows = random.randint(6, 20)
     cell_size = random.randint(10, 25)
-    line_thickness = random.randint(1, 5)
+    line_thickness = random.randint(2, 5)
     padding = random.randint(0, 10)
     return generate_maze_image(cols, rows, cell_size, line_thickness, padding)
