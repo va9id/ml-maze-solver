@@ -149,6 +149,19 @@ def find_maze_size(binary_image: cv2.typing.MatLike) -> int:
     
     return opening1
 
+def are_elements_consecutive(arr: List[int]) -> bool:
+    '''
+    Helper function to check if elements in an array are consecutive
+    '''
+    if len(arr) <= 1:
+        return True
+
+    for i in range(1, len(arr)):
+        if arr[i] != arr[i-1] + 1:
+            return False
+    
+    return True
+
 def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
     '''
     Adds the start and end locations to the maze image using their respective constant values
@@ -213,9 +226,14 @@ def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
                     return [(starting_row, cols-1), (ending_row, cols-1)]
 
     if opening1 == 0 or opening2 == 0:
-        raise Exception("There must be an entrance and exit in the maze!")
+        raise Exception("Error finding start and end of maze: could not find both an entrance and exit in the maze!")
     if arr[-3] != 0:
-        raise Exception("There should only be a single entrance and exit in the maze!")
+        raise Exception("Error finding start and end of maze: found multiple entrances/exits!")
+    if not (are_elements_consecutive(top_white) or are_elements_consecutive(bottom_white) 
+        or are_elements_consecutive(left_white) or are_elements_consecutive(right_white)):
+        raise Exception("Error finding start and end of maze: there appear to be multiple openings on the same side of the maze!")
+    if ((opening1 > 2*opening2) or (opening2 > 2*opening1)):
+        raise Exception("Error when finding start/end of maze: the image of the maze appears to have been processed incorrectly as the sizes of the entrance and exit are significantly different!")
     
     result = []
     added_start = False
