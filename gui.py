@@ -1,6 +1,7 @@
 import cv2
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import numpy as np
 from maze_solver import find_path
 from maze_classifier import MazeClassifier
@@ -65,6 +66,12 @@ class MazeSolverGui:
         self.window.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.window.mainloop()
 
+    def display_error_popup(self, title, message, is_error=True):
+        '''
+        Display errror popup when error has occured
+        '''
+        messagebox.showerror(title, message) if is_error else messagebox.showinfo(title, message)
+
     def open_file_dialog(self):
         '''
         Opens the file dialog
@@ -83,8 +90,11 @@ class MazeSolverGui:
             self.panel_result.destroy()
 
         image_path = self.open_file_dialog()
-        if not image_path.endswith((".jpg", ".jpeg", ".png")):
-            print("Invalid file type!")
+        if image_path and not image_path.endswith((".jpg", ".jpeg", ".png")):
+            self.display_error_popup(
+                "Invalid file type", 
+                "Please select an image file with one of the following extensions: .jpg, .jpeg, .png"
+            )
             self.export_btn.config(state="disabled")
             self.solve_btn.config(state="disabled")
             return
@@ -95,7 +105,10 @@ class MazeSolverGui:
             self.current_image = image
             self.solve_btn.config(state="normal")
         else:
-            print("No image selected, exiting!")
+            self.display_error_popup(
+                "No image selected", 
+                "No image was selected, please retry!"
+            )
             self.export_btn.config(state="disabled")
             self.solve_btn.config(state="disabled")
             return
@@ -121,7 +134,10 @@ class MazeSolverGui:
         Handles sovling the maze when the "Solve" button is clicked
         '''
         if self.current_image is None:
-            print("No image selected, can not solve!")
+            self.display_error_popup(
+                "No image selected",
+                "No image has been selected to solve the maze for!"
+            )
             return
         try:
             if self.mazeClassifier.is_maze(self.current_image):
@@ -135,11 +151,16 @@ class MazeSolverGui:
                 self.export_btn.config(state="normal")
                 self.export_btn["command"] = lambda: self.export_image(result_image)
             else:
-                print("The image does not look like a maze!")
+                self.display_error_popup(
+                    "Non maze image",
+                    "The image does not look like a maze!"
+                )
                 return
-        except Exception as error:
-            print(error)
-            print("The maze could not be solved!")
+        except Exception:
+            self.display_error_popup(
+                "Solving Error",
+                "The maze could not be solved!"
+            )
             return
 
     def display_image(self, image):
@@ -174,7 +195,13 @@ class MazeSolverGui:
         if file_path:
             try:
                 cv2.imwrite(file_path, cv2.cvtColor(result_image, cv2.COLOR_RGB2BGR))
-                print("Image saved successfully")
-            except Exception as error:
-                print(error)
-                print("Failed to save image")
+                self.display_error_popup(
+                    "Image saved",
+                    "Solved maze image saved successfully!",
+                    False
+                )
+            except Exception:
+                self.display_error_popup(
+                    "Export sovled maze error",
+                    "Failed to save image!"
+                )
