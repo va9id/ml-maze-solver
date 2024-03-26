@@ -64,4 +64,4 @@ def test_classifier(num_images):
     print(f"Number of non-mazes incorrectly classified: {num_non_mazes_failed}/{num_images}")
 
 if __name__ == "__main__":
-    test_classifier(100)
+    test_classifier(NUM_TRAINING_IMAGES)

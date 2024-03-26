@@ -107,7 +107,7 @@ def train(epochs, network, train_loader, optimizer):
 
 if __name__ == "__main__":
     transform = transforms.Compose([transforms.ToPILImage(), transforms.Resize((64, 64)), transforms.ToTensor()])
-    train_dataset = MazeDataset(100, 100, True, transform)
+    train_dataset = MazeDataset(NUM_TRAINING_IMAGES, NUM_TRAINING_IMAGES, True, transform)
     batch_size = 32
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     network = ConvNet()
