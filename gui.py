@@ -1,11 +1,12 @@
 import cv2
 import tkinter as tk
 from tkinter import filedialog
-from tkinter import ttk
+import numpy as np
 from maze_solver import find_path
 from maze_classifier import MazeClassifier
 from PIL import Image, ImageTk
-from constants import IMAGE_SIZE
+from maze_generator import generate_random_maze_image
+from image_helper import resize_image
 
 class CustomButton(tk.Button):
     def __init__(self, master=None, **kw):
@@ -13,8 +14,8 @@ class CustomButton(tk.Button):
         self.configure(
             width=15,
             borderwidth=0,
-            bg="#007FFF",
-            fg="white",
+            bg="white",
+            fg="black",
             font=("Helvetica", 12, "bold")
         )
 
@@ -25,7 +26,7 @@ class MazeSolverGui:
         self.window.configure(background="#1B1B1B")
         self.window.title("Maze Solver")
         self.window.geometry("650x425")
-        self.uploaded_image = None
+        self.current_image = None
         self.panel_uploaded = None
         self.panel_result = None
         self.mazeClassifier = MazeClassifier()
@@ -40,7 +41,8 @@ class MazeSolverGui:
         self.generate_btn = CustomButton(
             self.window, 
             text="Generate Maze", 
-        )  # command= )
+            command=self.generate_maze,
+        )  
         self.generate_btn.grid(row=0, column=1, pady=20, padx=20, sticky="n")
 
         self.solve_btn = CustomButton(
@@ -61,6 +63,7 @@ class MazeSolverGui:
 
         self.window.grid_rowconfigure(0, weight=1)
         self.window.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        self.window.mainloop()
 
     def open_file_dialog(self):
         '''
@@ -80,26 +83,49 @@ class MazeSolverGui:
             self.panel_result.destroy()
 
         image_path = self.open_file_dialog()
+        if not image_path.endswith((".jpg", ".jpeg", ".png")):
+            print("Invalid file type!")
+            self.export_btn.config(state="disabled")
+            self.solve_btn.config(state="disabled")
+            return
         if image_path:
             self.export_btn.config(state="disabled")
             image = cv2.imread(image_path)
-            self.display_uploaded_image(image)
-            self.uploaded_image = image
+            self.display_image(image)
+            self.current_image = image
             self.solve_btn.config(state="normal")
         else:
             print("No image selected, exiting!")
+            self.export_btn.config(state="disabled")
+            self.solve_btn.config(state="disabled")
             return
+        
+    def generate_maze(self):
+        '''
+        Handles generate a maze when the "Generate Maze" button is clicked
+        '''
+        if self.panel_uploaded is not None:
+            self.panel_uploaded.destroy()
+
+        if self.panel_result is not None:
+            self.panel_result.destroy()
+
+        image = cv2.cvtColor(np.array(generate_random_maze_image(), dtype='uint8'), cv2.COLOR_GRAY2BGR)
+        self.export_btn.config(state="disabled")
+        self.display_image(image)
+        self.current_image = image
+        self.solve_btn.config(state="normal")
 
     def solve_maze(self):
         '''
         Handles sovling the maze when the "Solve" button is clicked
         '''
-        if self.uploaded_image is None:
+        if self.current_image is None:
             print("No image selected, can not solve!")
             return
         try:
-            if self.mazeClassifier.is_maze(self.uploaded_image):
-                result_image = find_path(self.uploaded_image)
+            if self.mazeClassifier.is_maze(self.current_image):
+                result_image = find_path(self.current_image)
 
                 if self.panel_result is not None:
                     self.panel_result.destroy()
@@ -109,18 +135,18 @@ class MazeSolverGui:
                 self.export_btn.config(state="normal")
                 self.export_btn["command"] = lambda: self.export_image(result_image)
             else:
-                print("The uploaded image does not look like a maze!")
+                print("The image does not look like a maze!")
                 return
         except Exception as error:
             print(error)
-            print("The uploaded maze could not be solved!")
+            print("The maze could not be solved!")
             return
 
-    def display_uploaded_image(self, image):
+    def display_image(self, image):
         '''
-        Displays the uploaded maze image onto the GUI
+        Displays the maze image onto the GUI
         '''
-        image = cv2.resize(image, IMAGE_SIZE)
+        image = resize_image(image)
         image = Image.fromarray(image)
         image = ImageTk.PhotoImage(image)
         self.panel_uploaded = tk.Label(self.window, image=image)
@@ -131,7 +157,7 @@ class MazeSolverGui:
         '''
         Displays the solved maze image onto the GUI
         '''
-        image = cv2.resize(image, IMAGE_SIZE)
+        image = resize_image(image)
         image = Image.fromarray(image)
         image = ImageTk.PhotoImage(image)
         self.panel_result = tk.Label(self.window, image=image)

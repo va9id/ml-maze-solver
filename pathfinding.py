@@ -61,7 +61,7 @@ def reconstruct_path(came_from, start, end):
 def heuristic(a, b, grid):
     '''
     Calculates the heuristic (estimated cost) from node 'a' to node 'b' 
-    using the Manhattan distance while accounting for the distance to the nearest wall
+    using the Manhattan distance
 
     Parameters:
     a: a tuple representing the coordinates (row, column) of node 'a'
@@ -71,7 +71,7 @@ def heuristic(a, b, grid):
     Returns:
     float: the estimated cost (heuristic) from node 'a' to node 'b'
     '''
-    return abs(a[0] - b[0]) + abs(a[1] - b[1]) + 0.9 * distance_to_nearest_wall(b, grid)
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) #+ 3 * distance_to_nearest_wall(b, grid)
 
 def distance_to_nearest_wall(node, grid):
     '''

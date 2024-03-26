@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from pathfinding import astar
+from image_helper import resize_image
 from constants import PATHWAY, WALL, START, END, BLACK_PIXEL, WHITE_PIXEL, MAZE_WINDOW_NAME, DELAY
 from typing import List, Tuple
 
@@ -232,8 +233,6 @@ def add_start_end_to_maze(maze: cv2.typing.MatLike) -> List[tuple]:
     if not (are_elements_consecutive(top_white) or are_elements_consecutive(bottom_white) 
         or are_elements_consecutive(left_white) or are_elements_consecutive(right_white)):
         raise Exception("Error finding start and end of maze: there appear to be multiple openings on the same side of the maze!")
-    if ((opening1 > 2*opening2) or (opening2 > 2*opening1)):
-        raise Exception("Error when finding start/end of maze: the image of the maze appears to have been processed incorrectly as the sizes of the entrance and exit are significantly different!")
     
     result = []
     added_start = False
@@ -266,28 +265,34 @@ def convert_to_black_and_white(gray_img: cv2.typing.MatLike) -> None:
     '''
     pass
 
-def resize_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
+def create_maze_matrix(gray_image: cv2.typing.MatLike) -> Tuple[cv2.typing.MatLike, int]:
     '''
-    Resizes maze image 
+    Creates a matrix of walls and pathways given an image of a maze
 
     Parameters:
-    image: the maze image to resize
+    gray_image: the grayscaled and cropped maze image
 
     Returns:
-    image: the resized image
+    maze, maze_size: a tuple where the first index is the maze matrix and the second index is size between the walls
     '''
-    resized_width = 600
-    resized_height = 400
-    original_height, original_width = image.shape[:2]
 
-    # Calculate the scaling factor for both dimensions
-    scale_x = resized_width / original_width
-    scale_y = resized_height / original_height
-    scale = min(scale_x, scale_y)
-    new_width = int(original_width * scale)
-    new_height = int(original_height * scale)
+    # Create initial maze
+    rows, cols = gray_image.shape
+    maze = np.zeros((rows, cols))
+    walls = set()
+    for i in range(rows):
+        for j in range(cols):
+            maze[i,j] = WALL if gray_image[i,j] == BLACK_PIXEL else PATHWAY
+            if maze[i,j] == WALL: walls.add((i,j))
 
-    return cv2.resize(image, (new_width, new_height))
+    maze_size = find_maze_size(maze)
+    wall_padding = maze_size // 4
+
+    # Adjust maze matrix so that paths do not touch walls
+    for y, x in walls:
+        maze[y - wall_padding : y + wall_padding, x - wall_padding : x + wall_padding] = WALL
+
+    return maze, maze_size
 
 def find_path(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     '''
@@ -308,15 +313,10 @@ def find_path(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     gray_img[gray_img > 100] = WHITE_PIXEL
     gray_img[gray_img <= 100] = BLACK_PIXEL
     gray_img = crop_image(gray_img)
-    
     rows, cols = gray_img.shape
-
-    maze = np.zeros((rows, cols))
-    for i in range(rows):
-        for j in range(cols):
-            maze[i,j] = WALL if gray_img[i,j] == BLACK_PIXEL else PATHWAY
+    maze, maze_size = create_maze_matrix(gray_img)
     
-    PATH_THICKNESS = int(find_maze_size(maze) * 0.5) # Using 50% of path width
+    PATH_THICKNESS = int(maze_size * 0.5) # Using 50% of maze width
     start, end = add_start_end_to_maze(maze)
     path = astar(maze, start, end)
 
@@ -324,16 +324,32 @@ def find_path(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
         raise Exception("No path has been found!")
 
     #Output result onto image
-    output_image = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2RGB)
+    output_image = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGR)
 
-    for i, j in path:
+    # Draw path on maze
+    for i, j in path[1:-1]:
         # Set a range of pixels around each path point
         for x in range(i - PATH_THICKNESS//2, i + PATH_THICKNESS//2 + 1):
             for y in range(j - PATH_THICKNESS//2, j + PATH_THICKNESS//2 + 1):
                 # Check if the coordinates are within the image boundaries
-                if 0 <= x < rows and 0 <= y < cols and maze[x,y] != WALL:
+                if (0 <= x < rows and 0 <= y < cols and maze[x,y] != WALL and 
+                    maze[x,y] != START and maze[x,y] != END):
                     output_image[x, y] = [255, 0, 0]
 
         display_image_with_delay(output_image)
+
+    # Colour start/end of path green/red respectively
+    for i in range(rows):
+        for j in range(cols):
+            colour = None
+            if maze[i, j] == START:
+                colour = [0, 255, 0]
+            elif maze[i, j] == END:
+                colour = [0, 0, 255]
+            if colour is not None:
+                for x in range(i - PATH_THICKNESS//2, i + PATH_THICKNESS//2 + 1):
+                    for y in range(j - PATH_THICKNESS//2, j + PATH_THICKNESS//2 + 1):
+                        if (0 <= x < rows and 0 <= y < cols and maze[x,y] != WALL):
+                            output_image[x, y] = colour
         
-    return output_image
+    return cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
