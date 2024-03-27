@@ -128,7 +128,7 @@ def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0) -
     start, _ = pick_start_and_end(cells)
     generate_pathways(cells, start)
 
-    image_size = (rows * cell_size + line_thickness, cols * cell_size + line_thickness, 1) # Define grayscale image based on image an cell size
+    image_size = (rows * cell_size + line_thickness, cols * cell_size + line_thickness, 1) # Define grayscale image based on image and cell size
     image = np.full(image_size, WHITE_PIXEL)
 
     # Draw pathways and walls on the image
@@ -159,6 +159,6 @@ def generate_random_maze_image() -> cv2.typing.MatLike:
     cols = random.randint(6, 20)
     rows = random.randint(6, 20)
     cell_size = random.randint(10, 25)
-    line_thickness = random.randint(2, 5)
+    line_thickness = random.randint(3, 5)
     padding = random.randint(0, 10)
     return generate_maze_image(cols, rows, cell_size, line_thickness, padding)

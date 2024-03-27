@@ -7,6 +7,7 @@ WHITE_PIXEL = 255
 IMAGE_SIZE = (300, 300)
 MAZE_WINDOW_NAME = "Solving The Maze"
 DELAY = 5
+NUM_TRAINING_IMAGES = 2000
 
 MAZE_FOLDER_NAME = "generated_mazes"
 NON_MAZE_FOLDER_NAME = "generated_non_mazes"

@@ -46,8 +46,9 @@ def find_inner_contours(gray_image: cv2.typing.MatLike) -> List:
             continue
         if hierarchy[0][h[3]][3] == -1:  # Parent has no parent, contour is innermost
             inner_contours.append(contours[i])
-    
+  
     return inner_contours
+
 
 def crop_image_using_contours(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     '''

@@ -66,9 +66,9 @@ class MazeSolverGui:
         self.window.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.window.mainloop()
 
-    def display_error_popup(self, title, message, is_error=True):
+    def display_popup(self, title, message, is_error=True):
         '''
-        Display errror popup when error has occured
+        Display popup dialog
         '''
         messagebox.showerror(title, message) if is_error else messagebox.showinfo(title, message)
 
@@ -91,7 +91,7 @@ class MazeSolverGui:
 
         image_path = self.open_file_dialog()
         if image_path and not image_path.endswith((".jpg", ".jpeg", ".png")):
-            self.display_error_popup(
+            self.display_popup(
                 "Invalid file type", 
                 "Please select an image file with one of the following extensions: .jpg, .jpeg, .png"
             )
@@ -105,7 +105,7 @@ class MazeSolverGui:
             self.current_image = image
             self.solve_btn.config(state="normal")
         else:
-            self.display_error_popup(
+            self.display_popup(
                 "No image selected", 
                 "No image was selected, please retry!"
             )
@@ -134,7 +134,7 @@ class MazeSolverGui:
         Handles sovling the maze when the "Solve" button is clicked
         '''
         if self.current_image is None:
-            self.display_error_popup(
+            self.display_popup(
                 "No image selected",
                 "No image has been selected to solve the maze for!"
             )
@@ -151,13 +151,14 @@ class MazeSolverGui:
                 self.export_btn.config(state="normal")
                 self.export_btn["command"] = lambda: self.export_image(result_image)
             else:
-                self.display_error_popup(
+                self.display_popup(
                     "Non maze image",
                     "The image does not look like a maze!"
                 )
                 return
-        except Exception:
-            self.display_error_popup(
+        except Exception as error:
+            print(error)
+            self.display_popup(
                 "Solving Error",
                 "The maze could not be solved!"
             )
@@ -195,13 +196,13 @@ class MazeSolverGui:
         if file_path:
             try:
                 cv2.imwrite(file_path, cv2.cvtColor(result_image, cv2.COLOR_RGB2BGR))
-                self.display_error_popup(
+                self.display_popup(
                     "Image saved",
                     "Solved maze image saved successfully!",
                     False
                 )
             except Exception:
-                self.display_error_popup(
+                self.display_popup(
                     "Export sovled maze error",
                     "Failed to save image!"
                 )
