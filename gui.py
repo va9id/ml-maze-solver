@@ -100,7 +100,7 @@ class MazeSolverGui:
             return
         if image_path:
             self.export_btn.config(state="disabled")
-            image = cv2.imread(image_path)
+            image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
             self.display_image(image)
             self.current_image = image
             self.solve_btn.config(state="normal")
