@@ -130,6 +130,7 @@ def generate_maze_image(cols, rows, cell_size, line_thickness, padding_size=0) -
 
     image_size = (rows * cell_size + line_thickness, cols * cell_size + line_thickness, 1) # Define grayscale image based on image and cell size
     image = np.full(image_size, WHITE_PIXEL)
+    image = np.ascontiguousarray(image, dtype=np.uint8)
 
     # Draw pathways and walls on the image
     for cell_row in cells:
