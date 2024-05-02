@@ -1,3 +1,5 @@
+# Machine Learning Maze Solver
+
 ## Usage
 Before running any of the code make sure to install the dependencies: <code>pip install -r requirements.txt</code>
 ### Train Model
